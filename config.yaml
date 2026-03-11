@@ -1,0 +1,218 @@
+# ============================================================
+# Pipeline Configuration
+# ============================================================
+# This file drives the entire classification pipeline.
+# Swap this file to point at a different table, different
+# columns, and different assignment labels — no code changes.
+# ============================================================
+
+# --- Source Table ---
+source:
+  schema: "playground"
+  table: "promo_bronze"
+  primary_key: "id"
+
+# --- Classification Target ---
+# The column that will be written to (created if missing in local mode).
+target:
+  column: "gs1_segment"
+
+# --- Context Columns ---
+# Columns sent to the LLM as classification evidence.
+# These must exist in the source table.
+context_columns:
+  - "product_name"
+  - "packaging_value"
+  - "packaging_unit"
+  - "packaging_type"
+
+# --- Display Column ---
+# Column used for human-readable logging/console output.
+# Falls back to the primary key if not present in the data.
+display_column: "product_name"
+
+# --- Assignment Labels ---
+# The set of valid labels the LLM can assign.
+# Each label has an optional description that is included in the prompt
+# to help the LLM make accurate assignments.
+labels:
+  # ── Fresh Produce ──────────────────────────────────────────
+  - name: "Fresh Fruits"
+    description: >
+      Fresh whole or cut fruit intended for direct consumption or cooking,
+      including apples, bananas, berries, citrus, grapes, melons, and stone fruit.
+  - name: "Fresh Vegetables"
+    description: >
+      Fresh whole or cut vegetables including root vegetables, brassicas,
+      alliums, capsicums, courgettes, cucumbers, and salad leaves.
+  - name: "Fresh Herbs & Salads"
+    description: >
+      Packaged fresh herbs (basil, parsley, coriander), pre-washed salad mixes,
+      baby leaves, and rocket sold as ready-to-eat greens.
+  # ── Fresh Protein ──────────────────────────────────────────
+  - name: "Fresh Meat & Poultry"
+    description: >
+      Uncooked fresh or chilled beef, pork, lamb, chicken, turkey, and other
+      poultry sold from the butcher counter or pre-packaged.
+  - name: "Fresh Fish & Seafood"
+    description: >
+      Fresh or chilled fish fillets, whole fish, prawns, shrimp, mussels,
+      crab, and other seafood products.
+  - name: "Deli & Charcuterie"
+    description: >
+      Sliced cured meats, cooked meats, patés, sausages, frankfurters,
+      and other ready-to-eat deli counter items.
+  # ── Dairy & Refrigerated ───────────────────────────────────
+  - name: "Dairy & Eggs"
+    description: >
+      Fresh milk (whole, semi-skimmed, skimmed), flavoured milk, cream,
+      butter, margarine, and eggs of all varieties.
+  - name: "Yoghurt & Chilled Desserts"
+    description: >
+      Plain and flavoured yoghurt, Greek yoghurt, fromage frais, quark,
+      and chilled dairy desserts such as mousse or custard.
+  - name: "Cheese"
+    description: >
+      All varieties of hard, soft, and processed cheese including cheddar,
+      gouda, brie, mozzarella, feta, and cream cheese.
+  - name: "Plant-Based Alternatives"
+    description: >
+      Non-dairy milk alternatives (oat, almond, soy), plant-based yoghurt,
+      vegan cheese, and other dairy substitute products.
+  # ── Bakery ─────────────────────────────────────────────────
+  - name: "Bread & Bakery"
+    description: >
+      Fresh and packaged bread loaves, rolls, baguettes, pitta, wraps,
+      croissants, pastries, muffins, and cakes.
+  # ── Frozen ─────────────────────────────────────────────────
+  - name: "Frozen Meals & Pizza"
+    description: >
+      Frozen ready meals, pizzas, pasta dishes, soups, and other
+      fully prepared frozen food requiring heating only.
+  - name: "Frozen Meat & Fish"
+    description: >
+      Frozen uncooked meat, poultry, fish fillets, seafood, burgers,
+      and sausages intended for home cooking.
+  - name: "Frozen Vegetables & Fruit"
+    description: >
+      Individually frozen or packaged frozen vegetables, peas, sweetcorn,
+      spinach, mixed stir-fry bags, and frozen berries or other fruit.
+  - name: "Frozen Desserts & Ice Cream"
+    description: >
+      Ice cream tubs and cones, sorbet, frozen yoghurt, lollies,
+      and other sweet frozen dessert products.
+  # ── Ambient Food ───────────────────────────────────────────
+  - name: "Snacks & Crisps"
+    description: >
+      Potato crisps, tortilla chips, popcorn, pretzels, rice cakes,
+      nuts, seeds, and savoury snack mixes.
+  - name: "Confectionery & Sweets"
+    description: >
+      Chocolate bars, bags of sweets, gummy candies, hard candy,
+      lollipops, and other sugar confectionery.
+  - name: "Pasta, Rice & Grains"
+    description: >
+      Dried pasta, noodles, rice (white, brown, basmati), couscous,
+      quinoa, lentils, dried beans, and other dried pulses.
+  - name: "Breakfast Cereals & Spreads"
+    description: >
+      Breakfast cereals, porridge oats, granola, muesli, cereal bars,
+      jam, honey, nut butters, and other breakfast spreads.
+  - name: "Canned & Jarred Foods"
+    description: >
+      Canned vegetables, fruit, fish, beans, soups, and stocks.
+      Jarred pasta sauces, pickles, olives, and preserved goods.
+  - name: "Sauces, Condiments & Oils"
+    description: >
+      Cooking oils, vinegars, ketchup, mustard, mayonnaise, hot sauces,
+      salad dressings, soy sauce, and other table condiments.
+  - name: "Baking & Dry Ingredients"
+    description: >
+      Flour, sugar, salt, baking powder, yeast, cocoa, chocolate chips,
+      dried fruit, and other baking essentials.
+  - name: "Coffee, Tea & Hot Drinks"
+    description: >
+      Ground coffee, coffee pods, instant coffee, loose-leaf tea,
+      tea bags, herbal infusions, and hot chocolate products.
+  - name: "Soft Drinks & Juices"
+    description: >
+      Carbonated soft drinks, still and sparkling water, fruit juices,
+      smoothies, energy drinks, and sports drinks.
+  - name: "Alcoholic Beverages"
+    description: >
+      Beer, lager, cider, wine, sparkling wine, spirits, liqueurs,
+      and ready-to-drink alcoholic products.
+  # ── Baby ───────────────────────────────────────────────────
+  - name: "Baby Food & Formula"
+    description: >
+      Infant formula, jarred baby food, baby cereals, toddler snacks,
+      and other products specifically formulated for infants and toddlers.
+  # ── Non-Food ───────────────────────────────────────────────
+  - name: "Cleaning & Household"
+    description: >
+      Laundry detergent, fabric softener, dishwasher tablets, surface
+      sprays, toilet cleaners, bin bags, and household cleaning products.
+  - name: "Personal Care & Hygiene"
+    description: >
+      Shampoo, conditioner, shower gel, soap, deodorant, toothpaste,
+      toothbrushes, razors, and skincare and body care products.
+  - name: "Health & Medicine"
+    description: >
+      Over-the-counter medicines, vitamins, supplements, first aid
+      supplies, and health monitoring products.
+  - name: "Baby & Child Care"
+    description: >
+      Nappies, baby wipes, nappy cream, baby toiletries, and
+      non-food products designed for infants and young children.
+  - name: "Pet Food & Supplies"
+    description: >
+      Wet and dry pet food, treats, cat litter, and other supplies
+      for dogs, cats, and household pets.
+  # ── Fallback ───────────────────────────────────────────────
+  - name: "Other"
+    description: >
+      Products that do not fit any of the above categories — for example
+      stationery, electronics, clothing, gardening, or seasonal items.
+      Use this ONLY when no other category is a reasonable fit.
+
+# --- Fallback Label ---
+# When the LLM cannot confidently classify, it should use this label.
+# Must match one of the label names above.
+fallback_label: "Other"
+
+# --- Prompt Configuration ---
+prompt:
+  system_message: >
+    You are a precise product classification assistant.
+    Assign ONE label to each product based only on the provided
+    columns and label descriptions.
+    Return structured results with the label for each row.
+
+  classification_context: >
+    Classify each product into ONE of the available labels.
+    Use the product attributes provided and the label descriptions
+    to make accurate assignments. Choose the most appropriate label
+    that best matches the product type. If you cannot confidently
+    assign a product to a specific label, use the fallback.
+
+  instructions_template: >
+    You are a product classification assistant.
+    Use ONLY these columns as context: {columns}
+
+    For each product, assign ONE label from the available list.
+
+    Choose the most appropriate label based on the product
+    attributes and label descriptions.
+
+    IMPORTANT: If you cannot confidently assign a product to a
+    specific label, use '{fallback_label}'.
+
+    Return ONLY a JSON array: [{{"row_id": int, "{response_key}": string}}]
+
+  # The key name used in the LLM JSON response for the assigned label.
+  response_key: "category_segment"
+
+# --- Pipeline Settings ---
+settings:
+  batch_size: 10
+  test_row_limit: 100        # Rows fetched in test mode (python tests/test_runner.py)
